@@ -3,10 +3,12 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from flaskr.auth import login_required
-from flaskr.db import get_db
+from ..auth.auth import login_required
+from ..db.db import get_db
 
-bp = Blueprint('blog', __name__)
+bp = Blueprint('blog', __name__,
+               template_folder='templates',
+               static_folder='static')
 
 @bp.route('/')
 def index():
@@ -16,7 +18,7 @@ def index():
         ' FROM post p JOIN user u ON p.author_id = u.id'
         ' ORDER BY created DESC'
     ).fetchall()
-    return render_template('blog/index.html', posts=posts)
+    return render_template('./index.html', posts=posts)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -42,7 +44,7 @@ def create():
             db.commit()
             return redirect(url_for('blog.index'))
 
-    return render_template('blog/create.html')
+    return render_template('./create.html')
 
 def get_post(id, check_author=True):
     post = get_db().execute(
@@ -86,7 +88,7 @@ def update(id):
             db.commit()
             return redirect(url_for('blog.index'))
 
-    return render_template('blog/update.html', post=post)
+    return render_template('./update.html', post=post)
 
 
 @bp.route('/<int:id>/delete', methods=('POST',))

@@ -28,13 +28,13 @@ def create_app(test_config=None):
     def hello():
         return 'hello, world!'
  
-    from . import db
+    from .db import db
     db.init_app(app)
     
-    from . import auth
+    from .auth import auth
     app.register_blueprint(auth.bp)
     
-    from . import blog
+    from .blog import blog
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')
     
