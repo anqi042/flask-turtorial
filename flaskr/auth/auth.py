@@ -4,13 +4,57 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from wtforms import Form, StringField, PasswordField, validators
 from ..db.db import get_db
+
+class RegistrationForm(Form):
+    username = StringField('Username', [validators.Length(min=4, max=25)])
+    email    = StringField('Email Address', [validators.Length(min=6, max=35)])
+    password = PasswordField('New Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message = 'Passwords must match')
+    ])
+    confirm = PasswordField('Repeat Password')
 
 # create a blueprint named 'auth'
 bp = Blueprint('auth', __name__, url_prefix='/auth',
-               template_folder='templates',
-               static_folder='static')
+               template_folder='templates')
 
+@bp.route('/register', methods=('GET', 'POST'))
+def register():
+    form = RegistrationForm(request.form)
+    if request.method == 'POST' and form.validate():
+        username = form.username.data
+        password = form.password.data
+        email    = form.email.data
+
+        db = get_db()
+        error = None
+        
+        if not username:
+            error = 'Username is required'
+        elif not password:
+            error = 'Password is required'
+        elif not email:
+            error = 'Email is required'
+        
+        if error is None:
+            try:
+                db.execute(
+                    "INSERT INTO user(username, password, email) VALUES (?, ?, ?)",
+                    (username, generate_password_hash(password), email),
+                )
+                db.commit()
+            except db.IntegrityError:
+                error = f"User {username} is already regitered."
+            else:
+                return redirect(url_for('auth.login'))
+        
+        flash(error)
+    
+    return render_template('./register.html', form = form)
+
+'''
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
@@ -39,6 +83,7 @@ def register():
         flash(error)
     
     return render_template('./register.html')
+'''
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():

@@ -1,15 +1,50 @@
-{% extends 'base.html' %}
-
-{% block header %}
-  <h1>{% block title %}Register{% endblock %}</h1>
-{% endblock %}
-
-{% block content %}
-  <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Register">
-  </form>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+</head>
+<body>
+    <h1>Register</h1>
+    <form method="POST" action="">
+        <div class="form-group">
+            <label for="{{ form.username.id }}">Username</label>
+            {{ form.username(class="form-control", id="username") }}
+            <div class="text-danger">
+                {% for error in form.username.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.email.id }}">Email Address</label>
+            {{ form.email(class="form-control", id="email") }}
+            <div class="text-danger">
+                {% for error in form.email.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password.id }}">New Password</label>
+            {{ form.password(class="form-control", id="password") }}
+            <div class="text-danger">
+                {% for error in form.password.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.confirm.id }}">Repeat Password</label>
+            {{ form.confirm(class="form-control", id="confirm") }}
+            <div class="text-danger">
+                {% for error in form.confirm.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+</body>
+</html>
