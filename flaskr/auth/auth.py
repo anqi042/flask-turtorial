@@ -4,10 +4,11 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-from wtforms import Form, StringField, PasswordField, validators, SubmitField
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, validators, SubmitField
 from ..db.db import get_db
 
-class RegistrationForm(Form):
+class RegistrationForm(FlaskForm):
     username = StringField('Username', [validators.Length(min=4, max=25)])
     email    = StringField('Email Address', [validators.Length(min=6, max=35), validators.Email()])
     password = PasswordField('New Password', [

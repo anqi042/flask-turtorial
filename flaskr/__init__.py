@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from datetime import timedelta
 
 def create_app(test_config=None):
     # create and configure the app
@@ -8,8 +9,10 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY = 'dev',
         DATABASE   = os.path.join(app.instance_path, 'flaskr.sqlite'),
+        PERMANENT_SESSION_LIFETIME = timedelta(minutes=5),
+        WTF_CRSF_ENABLED = True
     )
-    
+
     if test_config is None:
         # load the instance config, it it exists, when not testing
         app.config.from_pyfile('config.py', silent = True)
