@@ -4,7 +4,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-from wtforms import Form, StringField, PasswordField, validators
+from wtforms import Form, StringField, PasswordField, validators, SubmitField
 from ..db.db import get_db
 
 class RegistrationForm(Form):
@@ -15,6 +15,7 @@ class RegistrationForm(Form):
         validators.EqualTo('confirm', message = 'Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
+    submit = SubmitField('Register') 
 
 # create a blueprint named 'auth'
 bp = Blueprint('auth', __name__, url_prefix='/auth',
