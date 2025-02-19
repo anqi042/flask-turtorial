@@ -9,13 +9,13 @@ from ..db.db import get_db
 
 class RegistrationForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
-    email    = StringField('Email Address', [validators.Length(min=6, max=35)])
+    email    = StringField('Email Address', [validators.Length(min=6, max=35), validators.Email()])
     password = PasswordField('New Password', [
         validators.DataRequired(),
         validators.EqualTo('confirm', message = 'Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
-    submit = SubmitField('Register') 
+    submit = SubmitField('Register')
 
 # create a blueprint named 'auth'
 bp = Blueprint('auth', __name__, url_prefix='/auth',
