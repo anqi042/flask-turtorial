@@ -6,12 +6,20 @@ from datetime import timedelta
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    db_name   = 'flaskr.sqlite'
+    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"base_dir: {base_dir}")
+    print(f"app.instance_path: {app.instance_path}")
+    db_path = os.path.join(app.instance_path, db_name)
+    print(f"db_path: {db_path}")
+    
     app.config.from_mapping(
         SECRET_KEY = 'dev',
-        #DATABASE   = os.path.join(app.instance_path, 'flaskr.sqlite'),
+
         PERMANENT_SESSION_LIFETIME = timedelta(minutes=5),
         WTF_CRSF_ENABLED = True,
-        SQLALCHEMY_DATABASE_URI = 'sqlite:///flaskr.sqlite',
+        SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}',
         SQLALCHEMY_TRACK_MODIFICATIONS = False
     )
 

@@ -101,5 +101,5 @@ def update(id):
 def delete(id):
     get_post(id)
     db.session.delete(Post.query.filter_by(id = id).first())
-    db.commit()
+    db.session.commit()
     return redirect(url_for('blog.index'))
