@@ -8,9 +8,11 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY = 'dev',
-        DATABASE   = os.path.join(app.instance_path, 'flaskr.sqlite'),
+        #DATABASE   = os.path.join(app.instance_path, 'flaskr.sqlite'),
         PERMANENT_SESSION_LIFETIME = timedelta(minutes=5),
-        WTF_CRSF_ENABLED = True
+        WTF_CRSF_ENABLED = True,
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///flaskr.sqlite',
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
     )
 
     if test_config is None:
@@ -32,7 +34,10 @@ def create_app(test_config=None):
         return 'hello, world!'
  
     from .db import db
-    db.init_app(app)
+    db.sqldb.init_app(app)
+    db.init_db_app(app)
+    with app.app_context():
+        db.sqldb.create_all()
     
     from .auth import auth
     app.register_blueprint(auth.bp)

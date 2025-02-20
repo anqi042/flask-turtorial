@@ -6,7 +6,8 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, validators, SubmitField
-from ..db.db import get_db
+from ..db.db import sqldb as db
+from ..db.db import User
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', [validators.Length(min=4, max=25)])
@@ -30,7 +31,7 @@ def register():
         password = form.password.data
         email    = form.email.data
 
-        db = get_db()
+        #db = get_db()
         error = None
         
         if not username:
@@ -42,11 +43,11 @@ def register():
         
         if error is None:
             try:
-                db.execute(
-                    "INSERT INTO user(username, password, email) VALUES (?, ?, ?)",
-                    (username, generate_password_hash(password), email),
-                )
-                db.commit()
+                new_user = User(username = username, 
+                                   password = generate_password_hash(password), 
+                                   email = email)
+                db.session.add(new_user)
+                db.session.commit()
             except db.IntegrityError:
                 error = f"User {username} is already regitered."
             else:
@@ -92,21 +93,19 @@ def login():
     if request.method == "POST":
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
+        #db = get_db()
         error = None
         
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
+        user = User.query.filter_by(username = username).first()
         
         if user is None:
             error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
+        elif not check_password_hash(user.password, password):
             error = 'Incorrect password.'
         
         if error is None:
             session.clear()
-            session['user_id'] = user['id']
+            session['user_id'] = user.id
             return redirect(url_for('index'))
         
         flash(error)
@@ -120,9 +119,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
+        g.user = User.query.get(user_id)
 
 @bp.route('/logout')
 def logout():
