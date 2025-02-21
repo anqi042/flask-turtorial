@@ -65,8 +65,8 @@ def get_post(id, check_author=True):
     if post is None:
         abort(404, f"Post id {id} doesn't exist.")
 
-    if check_author and post.author_id != g.user.id:
-        abort(403)
+    #if check_author and post.author_id != g.user.id:
+    #    abort(403)
 
     return post
 
@@ -95,6 +95,15 @@ def update(id):
 
     return render_template('./update.html', post=post)
 
+@bp.route('/<int:id>/read', methods=('GET', 'POST'))
+#@login_required
+def read(id):
+    post = get_post(id)
+
+    if post is None:
+        abort(404, f"Post id {id} doesn't exist.")
+
+    return render_template('./read.html', post=post)
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required

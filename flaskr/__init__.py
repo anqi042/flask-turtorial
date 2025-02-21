@@ -3,6 +3,10 @@ import os
 from flask import Flask
 from datetime import timedelta
 
+from flask_sqlalchemy import SQLAlchemy
+
+sqldb = SQLAlchemy()
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -17,7 +21,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY = 'dev',
 
-        PERMANENT_SESSION_LIFETIME = timedelta(minutes=5),
+        PERMANENT_SESSION_LIFETIME = timedelta(minutes=20),
         WTF_CRSF_ENABLED = True,
         SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}',
         SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -42,10 +46,10 @@ def create_app(test_config=None):
         return 'hello, world!'
  
     from .db import db
-    db.sqldb.init_app(app)
-    db.init_db_app(app)
+    sqldb.init_app(app)
+    db.add_init_command(app)
     with app.app_context():
-        db.sqldb.create_all()
+        sqldb.create_all()
     
     from .auth import auth
     app.register_blueprint(auth.bp)

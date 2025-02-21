@@ -4,9 +4,7 @@ from datetime import datetime
 import click
 from flask import current_app, g
 
-from flask_sqlalchemy import SQLAlchemy
-
-sqldb = SQLAlchemy()
+from .. import sqldb
 
 '''
 CREATE TABLE user (
@@ -29,8 +27,8 @@ CREATE TABLE post (
 class User(sqldb.Model):
     id = sqldb.Column(sqldb.Integer, primary_key=True, autoincrement=True)
     username = sqldb.Column(sqldb.String(80), unique=True, nullable=False)
-    password = sqldb.Column(sqldb.String(120), unique=True, nullable=False)
-    email    = sqldb.Column(sqldb.String(120), unique = True, nullable=False)
+    password = sqldb.Column(sqldb.String(120), nullable=False)
+    email    = sqldb.Column(sqldb.String(120), nullable=False)
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -44,24 +42,6 @@ class Post(sqldb.Model):
     
     def __repr__(self):
         return f'<Post {self.title}>'
-
-'''
-def get_db():
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types = sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
-
-    return g.db
-
-def close_db(e=None):
-    db = g.pop('db', None)
-
-    if db is not None:
-        db.close()
-'''
 
 def init_db():
     with current_app.app_context():
@@ -77,6 +57,6 @@ sqlite3.register_converter(
     "timestamp", lambda v: datetime.fromisoformat(v.decode())
 )
 
-def init_db_app(app):
+def add_init_command(app):
     #app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
