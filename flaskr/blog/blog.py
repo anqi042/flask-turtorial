@@ -1,12 +1,12 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
 from ..auth.auth import login_required
 from ..db.db import sqldb as db
-from ..db.db import User, Post
-from sqlalchemy import desc
+from ..db.db import User, Post, Like,  UnLike
+from sqlalchemy import desc, func
 
 bp = Blueprint('blog', __name__,
                template_folder='templates',
@@ -19,14 +19,17 @@ def index():
         query = (
             Post.query
             .join(User, Post.author_id == User.id)
+            .join(Like, Post.id == Like.post_id)
             .add_columns(
                 Post.id,
                 Post.title,  # 假设 Post 模型中有一个名为 title 的字段
                 Post.body,   # 假设 Post 模型中有一个名为 body 的字段（注意：原 SQL 中是 'body'，但常见字段名可能是 'content'）
                 Post.created,  # 假设 Post 模型中有一个名为 created 的字段
                 Post.author_id,
-                User.username  # 从 User 模型中加入 username 字段
+                User.username,  # 从 User 模型中加入 username 字段
+                func.count(Like.post_id).label('likes')
             )
+            .group_by(Post.id, User.username)  # 按照 Post 的 id 和 username 分组
             .order_by(desc(Post.created))  # 按照 created 字段降序排列
         )
  
@@ -112,3 +115,23 @@ def delete(id):
     db.session.delete(Post.query.filter_by(id = id).first())
     db.session.commit()
     return redirect(url_for('blog.index'))
+
+@bp.route('/blog/<int:post_id>/<int:user_id>/like', methods=['POST'])
+@login_required
+def like(post_id, user_id):
+    print(f"like view {post_id}")
+    # check if the user has already liked the post
+    like = Like.query.filter_by(post_id=post_id, user_id=user_id).first()
+    if like:
+        # if the user has already liked the post, do nothing
+        number =  Like.query.filter_by(post_id=post_id).count()
+        return jsonify({'likes': number})
+
+    like = Like(post_id=post_id, user_id=user_id)
+    db.session.add(like)
+    db.session.commit()
+
+    # count the like number in the like table with post_id
+    number =  Like.query.filter_by(post_id=post_id).count()
+
+    return jsonify({'likes': number})

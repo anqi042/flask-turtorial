@@ -20,9 +20,31 @@
         {% endif %}
       </header>
       <p class="body">{{ post['body'] }}</p>
+      <p class="likes">Likes: <span id="likes-{{ post['id'] }}">{{ post['likes'] }}</span></p>
+      <button class="like-button" data-post-id="{{ post['id'] }}" data-user-id="{{ g.user['id'] }}">Like</button>
     </article>
     {% if not loop.last %}
       <hr>
     {% endif %}
   {% endfor %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('.like-button').on('click', function() {
+        var postId = $(this).data('post-id');
+        var userId = $(this).data('user-id');
+        if (!userId) {
+          alert('You must be logged in to like a post.');
+          return;
+        }
+        $.ajax({
+          type: 'POST',
+          url: '/blog/' + postId + '/' + userId + '/like',
+          success: function(data) {
+            $('#likes-' + postId).text(data.likes);
+          }
+        });
+      });
+    });
+  </script>
 {% endblock %}

@@ -4,6 +4,7 @@ from flask import Flask
 from datetime import timedelta
 
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 sqldb = SQLAlchemy()
 
@@ -57,5 +58,7 @@ def create_app(test_config=None):
     from .blog import blog
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')
-    
+
+    migrate = Migrate(app, sqldb)
+
     return app
