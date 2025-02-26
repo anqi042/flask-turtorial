@@ -122,7 +122,9 @@ def like(post_id, user_id):
     # check if the user has already liked the post
     like = Like.query.filter_by(post_id=post_id, user_id=user_id).first()
     if like:
-        # if the user has already liked the post, do nothing
+        # if the user has already liked the post, delete the like
+        db.session.delete(like)
+        db.session.commit()
         number =  Like.query.filter_by(post_id=post_id).count()
         return jsonify({'likes': number})
 
