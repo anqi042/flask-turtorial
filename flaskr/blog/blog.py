@@ -15,23 +15,22 @@ bp = Blueprint('blog', __name__,
 @bp.route('/')
 def index():
     try:
-        # 使用 Flask-SQLAlchemy 的查询构造器
         query = (
             Post.query
+            .outerjoin(Like, Post.id == Like.post_id)  # 改为外连接
             .join(User, Post.author_id == User.id)
-            .join(Like, Post.id == Like.post_id)
             .add_columns(
                 Post.id,
-                Post.title,  # 假设 Post 模型中有一个名为 title 的字段
-                Post.body,   # 假设 Post 模型中有一个名为 body 的字段（注意：原 SQL 中是 'body'，但常见字段名可能是 'content'）
-                Post.created,  # 假设 Post 模型中有一个名为 created 的字段
+                Post.title,
+                Post.body,
+                Post.created,
                 Post.author_id,
-                User.username,  # 从 User 模型中加入 username 字段
-                func.count(Like.post_id).label('likes')
+                User.username,
+                func.coalesce(func.count(Like.post_id), 0).label('likes')  # 处理空值
             )
-            .group_by(Post.id, User.username)  # 按照 Post 的 id 和 username 分组
-            .order_by(desc(Post.created))  # 按照 created 字段降序排列
-        )
+            .group_by(Post.id)
+            .order_by(desc(Post.created))
+)
  
         # 执行查询并获取结果
         results = query.all()
