@@ -45,7 +45,7 @@ def index():
 def create():
     if request.method == 'POST':
         title = request.form['title']
-        body = request.form['body']
+        body  = request.form['body']
         error = None
 
         if not title:
@@ -110,9 +110,21 @@ def read(id):
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    get_post(id)
-    db.session.delete(Post.query.filter_by(id = id).first())
+    post = get_post(id)
+    if post:
+        db.session.delete(post)
+
+    # if the post is deleted, all the likes and unlikes should be deleted if have
+    likes = Like.query.filter_by(post_id = id).all()
+    for like in likes:
+        db.session.delete(like)
+    unlikes = UnLike.query.filter_by(post_id = id).all()
+
+    for unlike in unlikes:
+        db.session.delete(unlike)
+
     db.session.commit()
+
     return redirect(url_for('blog.index'))
 
 @bp.route('/blog/<int:post_id>/<int:user_id>/like', methods=['POST'])
