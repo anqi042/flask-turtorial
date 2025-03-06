@@ -6,6 +6,8 @@ from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
+from sqlalchemy import Engine
+
 sqldb = SQLAlchemy()
 
 def create_app(test_config=None):
@@ -25,6 +27,7 @@ def create_app(test_config=None):
         PERMANENT_SESSION_LIFETIME = timedelta(minutes=20),
         WTF_CRSF_ENABLED = True,
         SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}',
+        #sqlalchemy_foreign_key_constraints = True, # enforce foreign key constraints is not working
         SQLALCHEMY_TRACK_MODIFICATIONS = False
     )
 
@@ -50,6 +53,12 @@ def create_app(test_config=None):
     sqldb.init_app(app)
     db.add_init_command(app)
     with app.app_context():
+        # Set up SQLite to enforce foreign key constraints
+        @sqldb.event.listens_for(Engine, "connect")
+        def set_sqlite_pragma(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
         sqldb.create_all()
     
     from .auth import auth

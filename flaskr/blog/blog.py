@@ -113,7 +113,9 @@ def delete(id):
     post = get_post(id)
     if post:
         db.session.delete(post)
+        db.session.commit()
 
+    '''
     # if the post is deleted, all the likes and unlikes should be deleted if have
     likes = Like.query.filter_by(post_id = id).all()
     for like in likes:
@@ -122,8 +124,7 @@ def delete(id):
 
     for unlike in unlikes:
         db.session.delete(unlike)
-
-    db.session.commit()
+    '''
 
     return redirect(url_for('blog.index'))
 

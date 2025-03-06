@@ -4,7 +4,6 @@ from datetime import datetime
 import click
 from flask import current_app, g
 
-
 from .. import sqldb
 
 '''
@@ -40,10 +39,8 @@ class Post(sqldb.Model):
     created      = sqldb.Column(sqldb.DateTime, nullable=False, default=datetime.utcnow)
     title        = sqldb.Column(sqldb.String(120), nullable=False)
     body         = sqldb.Column(sqldb.Text, nullable=False)
-    #like         = sqldb.Column(sqldb.Integer, nullable=True, default=0)
-    #like_users   = sqldb.Column(sqldb.Text, nullable=True)
-    #unlike       = sqldb.Column(sqldb.Integer, nullable=True, default=0)
-    #unlike_users = sqldb.Column(sqldb.Text, nullable=True)
+    likes        = sqldb.relationship('Like'  , backref='post', cascade='all, delete-orphan', passive_deletes=True)
+    unlikes      = sqldb.relationship('UnLike', backref='post', cascade='all, delete-orphan', passive_deletes=True)
     
     def __repr__(self):
         return f'<Post {self.title}>'
@@ -51,12 +48,12 @@ class Post(sqldb.Model):
 class Like(sqldb.Model):
     id = sqldb.Column(sqldb.Integer, primary_key=True, autoincrement=True)
     user_id    = sqldb.Column(sqldb.Integer, sqldb.ForeignKey('user.id'), nullable=False) # User.id will cause an error: can't find foreign key
-    post_id    = sqldb.Column(sqldb.Integer, sqldb.ForeignKey('post.id'), nullable=False) # Post.id will cause an error: can't find foreign key
+    post_id    = sqldb.Column(sqldb.Integer, sqldb.ForeignKey('post.id', ondelete='CASCADE'), nullable=False) # Post.id will cause an error: can't find foreign key
 
 class UnLike(sqldb.Model):
     id = sqldb.Column(sqldb.Integer, primary_key=True, autoincrement=True)
     user_id    = sqldb.Column(sqldb.Integer, sqldb.ForeignKey('user.id'), nullable=False) # User.id will cause an error: can't find foreign key
-    post_id    = sqldb.Column(sqldb.Integer, sqldb.ForeignKey('post.id'), nullable=False) # Post.id will cause an error: can't find foreign key
+    post_id    = sqldb.Column(sqldb.Integer, sqldb.ForeignKey('post.id', ondelete='CASCADE'), nullable=False) # Post.id will cause an error: can't find foreign key
 
 def init_db():
     with current_app.app_context():
