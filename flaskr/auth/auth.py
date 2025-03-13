@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, validators, SubmitField
 from ..db.db import sqldb as db
 from ..db.db import User
+from sqlalchemy.exc import IntegrityError
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', [validators.Length(min=4, max=25)])
@@ -48,8 +49,9 @@ def register():
                                    email = email)
                 db.session.add(new_user)
                 db.session.commit()
-            except db.IntegrityError:
-                error = f"User {username} is already regitered."
+            except IntegrityError:
+                db.session.rollback()
+                error = f"User {username} is already registered."
             else:
                 return redirect(url_for('auth.login'))
         
@@ -62,7 +64,7 @@ def login():
     if request.method == "POST":
         username = request.form['username']
         password = request.form['password']
-        #db = get_db()
+
         error = None
         
         user = User.query.filter_by(username = username).first()
@@ -88,7 +90,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = User.query.get(user_id)
+        g.user = session.get(user_id)
 
 @bp.route('/logout')
 def logout():

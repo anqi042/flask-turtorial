@@ -13,7 +13,8 @@ def app():
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///:memory:',
         #'SQLALCHEMY_ECHO': True,
-        'SQLALCHEMY_TRACK_MODIFICATIONS': False
+        'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+        'WTF_CSRF_ENABLED': False
     })
 
     with app.app_context():
@@ -34,3 +35,26 @@ def client(app):
 @pytest.fixture
 def runner(app):
     return app.test_cli_runner()
+
+class AuthActions(object):
+    def __init__(self, client):
+        self._client = client
+
+    def login(self, username='test',  password='test'):
+        return self._client.post(
+            '/auth/login',
+            data={'username': username, 'password': password}
+        )
+    
+    def logout(self):
+        return self._client.get('/auth/logout')
+    
+    def register(self, username='test', email='1234@gmail.com', password='test', confirm='test'):
+        return self._client.post(
+            '/auth/register',
+            data={'username': username, 'email': email, 'password': password, 'confirm': confirm}
+        )
+
+@pytest.fixture
+def auth(client):
+    return AuthActions(client)
