@@ -77,6 +77,9 @@ def get_post(id, check_author=True):
 @login_required
 def update(id):
     post = get_post(id)
+    
+    if post.author_id != g.user.id:
+        abort(403), "User id {g.user.id} is not the author of post id {id}."
 
     if request.method == 'POST':
         title = request.form['title']
@@ -111,6 +114,10 @@ def read(id):
 @login_required
 def delete(id):
     post = get_post(id)
+    
+    if post.author_id != g.user.id:
+        abort(403), "User id {g.user.id} is not the author of post id {id}."
+    
     if post:
         db.session.delete(post)
         db.session.commit()
