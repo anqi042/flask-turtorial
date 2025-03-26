@@ -49,7 +49,25 @@ def test_index_with_1_post(client, auth):
     assert b"test title" in response.data
     assert b"test body" in response.data
     assert b'href="/1/update"' in response.data
+    # like the post
+    response = client.post('/blog/1/1/like')
+    assert response.status_code == 200
+    assert b'"likes":1' in response.data
+
+    auth.logout()
     
+    # reigster another user
+    auth.register('test2', '123@gmail.com', 'test', 'test')
+    auth.login('test2', 'test')
+    response = client.post('/blog/1/2/like')
+    assert response.status_code == 200
+    assert b'"likes":2' in response.data
+
+    # click the like button again
+    response = client.post('/blog/1/2/like')
+    assert response.status_code == 200
+    assert b'"likes":1' in response.data
+
     # logout and test
     auth.logout()
     response = client.get('/')
@@ -117,6 +135,7 @@ def test_update(client, auth):
     assert b'new title' in client.get('/').data
     assert b'new body' in client.get('/').data
     assert db.session.query(Post).filter_by(title='new title').first() is not None
+    assert db.session.query(Post).filter_by(title='test title').first() is None
     
 
 @pytest.mark.parametrize('path', (
@@ -127,7 +146,7 @@ def test_update_validate(client, auth, path):
     auth.register()
     auth.login()
     client.post('/create', data={'title': 'test title', 'body': 'test body'})
-    response = client.post(path, data={'title': '', 'body': ''})
+    response = client.post(path, data={'title': '', 'body': ''}) # title is null
     assert b'Title is required.' in response.data
 
 
@@ -139,3 +158,4 @@ def test_delete(client, auth):
     assert client.post('/1/delete').status_code == 302
     assert db.session.query(Post).filter_by(title='test title').first() is None
     assert b'test title' not in client.get('/').data
+    
